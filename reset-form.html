@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password - Borrito</title>
+    <title>Reset Your Password - VibeTunes</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --primary: #FF6B6B;
@@ -28,7 +29,6 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
         }
 
         .container {
@@ -38,24 +38,17 @@
             width: 90%;
             max-width: 400px;
             text-align: center;
-            transform: translateY(30px);
-            opacity: 0;
-            animation: slideIn 0.6s 0.3s ease-out forwards;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            display: block;
         }
 
         h1 {
             font-size: 1.8rem;
-            margin-bottom: 2rem;
-            line-height: 1.4;
-            opacity: 0;
-            animation: fadeIn 0.6s 0.5s ease-out forwards;
+            margin-bottom: 1.5rem;
         }
 
         .input-group {
             margin-bottom: 1.5rem;
-            opacity: 0;
-            animation: fadeIn 0.6s 0.7s ease-out forwards;
         }
 
         input {
@@ -66,7 +59,6 @@
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 1rem;
-            transition: all 0.3s ease;
         }
 
         input:focus {
@@ -84,9 +76,6 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0;
-            animation: fadeIn 0.6s 0.9s ease-out forwards;
         }
 
         button:hover {
@@ -95,28 +84,23 @@
         }
 
         .status-message {
-            position: fixed;
-            bottom: 1.5rem;
             background: var(--surface);
-            padding: 1rem 1.5rem;
+            padding: 1rem;
             border-radius: 8px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            opacity: 0;
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
         }
 
         .status-message.visible {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
+            display: block;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Forgot<br>Your Password?</h1>
+        <h1>Reset Your Password</h1>
 
         <div class="input-group">
             <input type="password" id="new-password" placeholder="New Password">
@@ -126,87 +110,82 @@
             <input type="password" id="confirm-password" placeholder="Confirm Password">
         </div>
 
-        <button onclick="resetPassword()">RESET PASSWORD</button>
+        <button id="reset-btn" onclick="resetPassword()">RESET PASSWORD</button>
 
         <div class="status-message" id="statusMessage"></div>
     </div>
 
-    <!-- ✅ Firebase SDK (Added) -->
+    <!-- ✅ Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
-    <!-- ✅ Firebase Config (Must be before using Firebase) -->
+    <!-- ✅ Firebase Config -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyClIhXAaTVmlqhEPxU49C9w9fDkUag-1eQ",
             authDomain: "vibe-tunes.firebaseapp.com",
         };
-
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
     </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            console.log("Password reset page loaded.");
+
             async function resetPassword() {
                 const urlParams = new URLSearchParams(window.location.search);
                 const oobCode = urlParams.get("oobCode");
                 const newPassword = document.getElementById("new-password").value;
                 const confirmPassword = document.getElementById("confirm-password").value;
                 const statusMessage = document.getElementById("statusMessage");
-                const button = document.querySelector("button");
+                const resetBtn = document.getElementById("reset-btn");
 
-                button.disabled = true;
-                button.innerHTML = "Processing...";
+                console.log("oobCode:", oobCode);
 
                 if (!oobCode) {
-                    showStatus("Invalid password reset link");
-                    button.disabled = false;
-                    button.textContent = "RESET PASSWORD";
+                    showStatus("Invalid password reset link!", false);
                     return;
                 }
 
                 if (newPassword.length < 6) {
-                    showStatus("Password must be at least 6 characters.");
-                    button.disabled = false;
-                    button.textContent = "RESET PASSWORD";
+                    showStatus("Password must be at least 6 characters.", false);
                     return;
                 }
 
                 if (newPassword !== confirmPassword) {
-                    showStatus("Passwords do not match");
-                    button.disabled = false;
-                    button.textContent = "RESET PASSWORD";
+                    showStatus("Passwords do not match!", false);
                     return;
                 }
 
                 try {
+                    resetBtn.disabled = true;
+                    resetBtn.textContent = "Processing...";
+
                     await auth.confirmPasswordReset(oobCode, newPassword);
-                    showStatus("Password reset successfully!", true);
+                    showStatus("Password reset successfully! Redirecting...", true);
+
                     setTimeout(() => {
                         window.location.href = "auth.html";
                     }, 2000);
                 } catch (error) {
-                    showStatus(error.message);
-                    button.disabled = false;
-                    button.textContent = "RESET PASSWORD";
+                    showStatus(error.message, false);
+                    resetBtn.disabled = false;
+                    resetBtn.textContent = "RESET PASSWORD";
                 }
             }
 
-            function showStatus(message, isSuccess = false) {
+            function showStatus(message, success) {
                 const statusElement = document.getElementById("statusMessage");
                 statusElement.textContent = message;
-                statusElement.className = `status-message ${isSuccess ? 'success' : ''} visible`;
-
-                setTimeout(() => {
-                    statusElement.classList.remove("visible");
-                }, 4000);
+                statusElement.className = `status-message ${success ? 'visible' : ''}`;
+                statusElement.style.color = success ? "green" : "red";
             }
 
-            // ✅ Make sure resetPassword function is globally available
             window.resetPassword = resetPassword;
         });
     </script>
+    <script src="config.js"></script>
 
 </body>
 
