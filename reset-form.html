@@ -76,11 +76,17 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
 
         .status-message {
@@ -103,11 +109,11 @@
         <h1>Reset Your Password</h1>
 
         <div class="input-group">
-            <input type="password" id="new-password" placeholder="New Password">
+            <input type="password" id="new-password" placeholder="New Password" autocomplete="new-password">
         </div>
 
         <div class="input-group">
-            <input type="password" id="confirm-password" placeholder="Confirm Password">
+            <input type="password" id="confirm-password" placeholder="Confirm Password" autocomplete="new-password">
         </div>
 
         <button id="reset-btn" onclick="resetPassword()">RESET PASSWORD</button>
@@ -115,19 +121,24 @@
         <div class="status-message" id="statusMessage"></div>
     </div>
 
-    <!-- ✅ Firebase SDK -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-    <!-- ✅ Firebase Config -->
+    
+    <!-- Firebase Config -->
     <script src="config.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            console.log("Password reset page loaded.");
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            let isProcessing = false;
 
             async function resetPassword() {
+                if (isProcessing) return;
+                isProcessing = true;
+                
                 const urlParams = new URLSearchParams(window.location.search);
                 const oobCode = urlParams.get("oobCode");
                 const newPassword = document.getElementById("new-password").value;
@@ -135,65 +146,62 @@
                 const statusMessage = document.getElementById("statusMessage");
                 const resetBtn = document.getElementById("reset-btn");
 
-                if (!oobCode) {
-                    showStatus("Invalid password reset link!", false);
-                    return;
-                }
-
-                if (newPassword.length < 6) {
-                    showStatus("Password must be at least 6 characters.", false);
-                    return;
-                }
-
-                if (newPassword !== confirmPassword) {
-                    showStatus("Passwords do not match!", false);
-                    return;
-                }
+                // Clear previous messages
+                statusMessage.textContent = "";
+                statusMessage.className = "status-message";
 
                 try {
+                    // Validate inputs
+                    if (!oobCode) throw new Error("Invalid password reset link!");
+                    if (newPassword.length < 6) throw new Error("Password must be at least 6 characters");
+                    if (newPassword !== confirmPassword) throw new Error("Passwords do not match!");
+
+                    // Update UI
                     resetBtn.disabled = true;
                     resetBtn.textContent = "Processing...";
 
-                    // ✅ Step 1: Reset password in Firebase Auth
+                    // Get user email from action code
+                    const actionCodeInfo = await auth.checkActionCode(oobCode);
+                    const userEmail = actionCodeInfo.data.email;
+
+                    // Confirm password reset
                     await auth.confirmPasswordReset(oobCode, newPassword);
-                    showStatus("Password reset successfully! Updating database...", true);
+                    showStatus("Password reset successfully!", true);
 
-                    // ✅ Step 2: Sign in the user to get their UID
-                    auth.onAuthStateChanged(async (user) => {
-                        if (user) {
-                            const db = firebase.firestore();
-                            const userRef = db.collection("users").doc(user.uid);
-
-                            // ✅ Step 3: Update Firestore with new password
-                            await userRef.update({ password: newPassword });
-
-                            showStatus("Password updated in Firestore!", true);
-
-                            // ✅ Step 4: Redirect to login page after 2 seconds
-                            setTimeout(() => {
-                                window.location.href = "https://vibe-tunes.vercel.app/auth.html";
-                            }, 2000);
-                        }
+                    // Sign in user to update Firestore
+                    const userCredential = await auth.signInWithEmailAndPassword(userEmail, newPassword);
+                    await db.collection("users").doc(userCredential.user.uid).update({
+                        password: newPassword,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
+                    showStatus("Password updated in database! Redirecting...", true);
+
+                    // Redirect to login
+                    setTimeout(() => {
+                        window.location.href = "https://vibe-tunes.vercel.app/auth.html";
+                    }, 2000);
+
                 } catch (error) {
-                    showStatus(error.message, false);
+                    console.error("Password reset error:", error);
+                    showStatus(error.message.replace("Firebase: ", ""), false);
+                } finally {
+                    isProcessing = false;
                     resetBtn.disabled = false;
                     resetBtn.textContent = "RESET PASSWORD";
                 }
             }
 
-            function showStatus(message, success) {
+            function showStatus(message, isSuccess) {
                 const statusElement = document.getElementById("statusMessage");
                 statusElement.textContent = message;
-                statusElement.className = `status-message ${success ? 'visible' : ''}`;
-                statusElement.style.color = success ? "green" : "red";
+                statusElement.classList.add("visible");
+                statusElement.style.color = isSuccess ? "#4CAF50" : "#FF5252";
             }
 
+            // Expose to global scope
             window.resetPassword = resetPassword;
         });
     </script>
-
 </body>
-
 </html>
