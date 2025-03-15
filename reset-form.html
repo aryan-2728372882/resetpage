@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Your Password | VibeTunes</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: white; text-align: center; padding: 50px; }
+        .container { max-width: 400px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px; }
+        input { background: #333; color: white; }
+        button { background: #007bff; color: white; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Reset Your Password</h2>
+        <p>Enter a new password for your VibeTunes account.</p>
+        
+        <input type="password" id="new-password" placeholder="New Password">
+        <input type="password" id="confirm-password" placeholder="Confirm Password">
+        <button onclick="resetPassword()">Update Password</button>
+        
+        <p id="status-message"></p>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyClIhXAaTVmlqhEPxU49C9w9fDkUag-1eQ",
+            authDomain: "vibe-tunes.firebaseapp.com",
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        async function resetPassword() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const oobCode = urlParams.get("oobCode");
+            const newPassword = document.getElementById("new-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (!oobCode) {
+                document.getElementById("status-message").textContent = "Invalid password reset request.";
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                document.getElementById("status-message").textContent = "Password must be at least 6 characters long.";
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                document.getElementById("status-message").textContent = "Passwords do not match.";
+                return;
+            }
+
+            try {
+                await auth.confirmPasswordReset(oobCode, newPassword);
+                document.getElementById("status-message").textContent = "Password updated successfully! You can now log in.";
+                setTimeout(() => { window.location.href = "auth.html"; }, 3000);
+            } catch (error) {
+                document.getElementById("status-message").textContent = "Error: " + error.message;
+            }
+        }
+    </script>
+
+</body>
+</html>
