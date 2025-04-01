@@ -1,326 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Your Password - VibeTunes</title>
+    <title>Quantum Password Reset | VibeTunes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #4A90E2; /* Blue from the image */
-            --primary-dark: #3A7BC8; /* Darker blue for hover */
-            --background-start: #E6F0FA; /* Light blue background start */
-            --background-end: #D1E3FA; /* Gradient end */
-            --surface: rgba(255, 255, 255, 0.15); /* Glassmorphism background */
-            --text-primary: #333333; /* Dark text for contrast */
-            --text-secondary: #666666; /* Lighter text for placeholders */
-            --accent: #FF6B6B; /* Coral accent for highlights */
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            --quantum-blue: #00f3ff;
+            --hologram-purple: #7d00ff;
+            --neon-pink: #ff00ff;
+            --dark-matter: #0a0a14;
+            --surface: rgba(255, 255, 255, 0.15);
+            --accent: #FF6B6B;
         }
 
         body {
-            background: linear-gradient(135deg, var(--background-start), var(--background-end));
-            color: var(--text-primary);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            position: relative;
+            margin: 0;
             overflow: hidden;
+            background: var(--dark-matter);
+            font-family: 'Poppins', sans-serif;
+            color: white;
         }
 
-        /* Floating particles in the background */
-        .particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .particle {
-            position: absolute;
-            background: rgba(74, 144, 226, 0.3);
-            border-radius: 50%;
-            animation: float 10s infinite ease-in-out;
-        }
-
-        .particle:nth-child(1) { width: 20px; height: 20px; top: 10%; left: 15%; animation-delay: 0s; }
-        .particle:nth-child(2) { width: 15px; height: 15px; top: 70%; left: 80%; animation-delay: 2s; }
-        .particle:nth-child(3) { width: 25px; height: 25px; top: 40%; left: 5%; animation-delay: 4s; }
-        .particle:nth-child(4) { width: 10px; height: 10px; top: 90%; left: 60%; animation-delay: 6s; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.5; }
-            50% { transform: translateY(-50px) scale(1.2); opacity: 1; }
-        }
-
-        /* Background decorative elements (gears, lock) */
-        body::before {
-            content: '⚙️';
-            position: absolute;
-            top: 20%;
-            right: 10%;
-            font-size: 3rem;
-            opacity: 0.1;
-            transform: rotate(45deg);
-            animation: spin 20s infinite linear;
-        }
-
-        body::after {
-            content: '🔒';
-            position: absolute;
-            top: 10%;
-            right: 15%;
-            font-size: 2.5rem;
-            opacity: 0.1;
-            animation: pulse 3s infinite ease-in-out;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(405deg); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.1; }
-            50% { transform: scale(1.2); opacity: 0.2; }
-        }
-
-        .container {
-            background: var(--surface);
-            backdrop-filter: blur(10px); /* Glassmorphism effect */
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 2.5rem;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        .quantum-container {
             position: relative;
-            z-index: 1;
+            height: 100vh;
+            perspective: 1000px;
         }
 
-        /* Key illustration on the left */
-        .key-illustration {
+        .hologram-form {
             position: absolute;
-            left: -120px;
             top: 50%;
-            transform: translateY(-50%) rotate(-45deg);
-            width: 100px;
-            height: 40px;
-            background: linear-gradient(90deg, #B0BEC5, #CFD8DC);
-            border-radius: 5px 5px 0 0;
-            z-index: 0;
-            transition: transform 0.5s ease;
-        }
-
-        .key-illustration:hover {
-            transform: translateY(-50%) rotate(-45deg) scale(1.1);
-        }
-
-        .key-illustration::before {
-            content: '';
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            background: #B0BEC5;
-            border-radius: 50%;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .key-illustration::after {
-            content: '';
-            position: absolute;
-            left: 110%;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 5px;
-            background: #B0BEC5;
-            border-radius: 2px;
-        }
-
-        /* Cactus illustration at bottom-right */
-        .cactus-illustration {
-            position: absolute;
-            bottom: -40px;
-            right: -30px;
-            width: 60px;
-            height: 80px;
-            z-index: 0;
-            animation: sway 3s infinite ease-in-out;
-        }
-
-        .cactus-illustration::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
             left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 50px;
-            background: linear-gradient(180deg, #4A90E2, #3A7BC8);
-            border-radius: 15px 15px 0 0;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            transform: translate(-50%, -50%) rotateX(15deg) rotateY(25deg);
+            transform-style: preserve-3d;
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--quantum-blue);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 400px;
+            box-shadow: 0 0 50px rgba(125, 0, 255, 0.3);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        .cactus-illustration::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 20px;
-            background: #333333;
-            border-radius: 5px 5px 10px 10px;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
-        }
-
-        .cactus-illustration .arm-left,
-        .cactus-illustration .arm-right {
-            position: absolute;
-            width: 10px;
-            height: 20px;
-            background: linear-gradient(180deg, #4A90E2, #3A7BC8);
-            border-radius: 5px;
-        }
-
-        .cactus-illustration .arm-left {
-            left: 5px;
-            top: 20px;
-            transform: rotate(-45deg);
-        }
-
-        .cactus-illustration .arm-right {
-            right: 5px;
-            top: 20px;
-            transform: rotate(45deg);
-        }
-
-        @keyframes sway {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(5deg); }
-        }
-
-        h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary);
-            font-weight: 400;
-            text-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
+        .hologram-form:hover {
+            transform: translate(-50%, -50%) rotateX(5deg) rotateY(-5deg);
+            box-shadow: 0 0 80px rgba(125, 0, 255, 0.5);
         }
 
         .input-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
+            margin-bottom: 2rem;
             position: relative;
         }
 
         input {
             width: 100%;
-            padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+            padding: 1rem;
             background: transparent;
-            border: none;
-            border-bottom: 2px solid #DDE4EE;
-            color: var(--text-primary);
+            border: 2px solid var(--quantum-blue);
+            border-radius: 8px;
+            color: var(--quantum-blue);
             font-size: 1rem;
-            transition: border-bottom-color 0.3s;
-        }
-
-        input::placeholder {
-            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            text-shadow: 0 0 10px var(--quantum-blue);
         }
 
         input:focus {
             outline: none;
-            border-bottom-color: var(--primary);
-        }
-
-        /* Input icons */
-        .input-group::before {
-            content: '🔑';
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
-
-        /* Animated underline effect */
-        .input-group::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-
-        input:focus ~ .input-group::after,
-        input:valid ~ .input-group::after {
-            width: 100%;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px var(--neon-pink);
         }
 
         button {
             position: relative;
             width: 100%;
-            padding: 0.875rem;
-            background: var(--primary);
+            padding: 1rem;
+            background: linear-gradient(45deg, var(--hologram-purple), var(--quantum-blue));
             border: none;
             border-radius: 8px;
             color: white;
-            font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.2rem;
             cursor: pointer;
             overflow: hidden;
-            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+            transition: all 0.3s ease;
         }
 
         button:hover {
-            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(74, 144, 226, 0.3);
+            box-shadow: 0 0 30px var(--quantum-blue);
         }
 
-        /* Ripple effect on button click */
-        button::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
+        .particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
         }
 
-        button:active::after {
-            width: 300px;
-            height: 300px;
+        .cyber-grid {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 49px,
+                    rgba(0, 243, 255, 0.1) 49px,
+                    rgba(0, 243, 255, 0.1) 50px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 49px,
+                    rgba(0, 243, 255, 0.1) 49px,
+                    rgba(0, 243, 255, 0.1) 50px
+                );
+            z-index: -2;
+            animation: gridFlow 20s linear infinite;
         }
 
-        button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        @keyframes gridFlow {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-50px, -50px); }
         }
 
         .status-message {
@@ -338,35 +145,25 @@
         }
     </style>
 </head>
-
 <body>
-    <div class="particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
+    <canvas class="particle-canvas"></canvas>
+    <div class="cyber-grid"></div>
+    
+    <div class="quantum-container">
+        <form class="hologram-form" id="resetForm">
+            <h1 style="color: var(--quantum-blue); margin-bottom: 2rem;">VibeTunes Password Reset</h1>
 
-    <div class="container">
-        <h1>Reset Password</h1>
+            <div class="input-group">
+                <input type="password" id="new-password" placeholder="New Password" required>
+            </div>
 
-        <div class="key-illustration"></div>
-        <div class="cactus-illustration">
-            <div class="arm-left"></div>
-            <div class="arm-right"></div>
-        </div>
+            <div class="input-group">
+                <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+            </div>
 
-        <div class="input-group">
-            <input type="password" id="new-password" placeholder="New Password" autocomplete="new-password" required>
-        </div>
-
-        <div class="input-group">
-            <input type="password" id="confirm-password" placeholder="Confirm New Password" autocomplete="new-password" required>
-        </div>
-
-        <button id="reset-btn" onclick="resetPassword()">Set Password</button>
-
-        <div class="status-message" id="statusMessage"></div>
+            <button type="submit" id="reset-btn">Password Resrt</button>
+            <div class="status-message" id="statusMessage"></div>
+        </form>
     </div>
 
     <!-- Firebase SDKs -->
@@ -378,12 +175,93 @@
     <script src="config.js"></script>
 
     <script>
+        // Quantum Particle System
+        class QuantumParticles {
+            constructor() {
+                this.canvas = document.querySelector('.particle-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.maxParticles = 500;
+                
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                this.init();
+                this.animate();
+            }
+
+            resize() {
+                this.width = this.canvas.width = window.innerWidth;
+                this.height = this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                for(let i = 0; i < this.maxParticles; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        size: Math.random() * 2,
+                        speedX: (Math.random() - 0.5) * 0.5,
+                        speedY: (Math.random() - 0.5) * 0.5,
+                        color: `rgba(0, 243, 255, ${Math.random() * 0.5})`
+                    });
+                }
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                this.particles.forEach(particle => {
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    if(particle.x < 0 || particle.x > this.width) particle.speedX *= -1;
+                    if(particle.y < 0 || particle.y > this.height) particle.speedY *= -1;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.fill();
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        new QuantumParticles();
+
+        // Hologram Interaction
+        const form = document.getElementById('resetForm');
+        let hoverTimeout;
+
+        form.addEventListener('mousemove', (e) => {
+            const rect = form.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            form.style.transform = `
+                translate(-50%, -50%)
+                rotateX(${(y - rect.height/2) * 0.1}deg)
+                rotateY(${(x - rect.width/2) * -0.1}deg)
+            `;
+        });
+
+        form.addEventListener('mouseleave', () => {
+            gsap.to(form, {
+                duration: 1,
+                transform: 'translate(-50%, -50%) rotateX(15deg) rotateY(25deg)',
+                ease: 'power3.out'
+            });
+        });
+
+        // Original Firebase Logic with Enhanced UI
         document.addEventListener("DOMContentLoaded", function () {
             const auth = firebase.auth();
             const db = firebase.firestore();
             let isProcessing = false;
 
-            async function resetPassword() {
+            document.getElementById('resetForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
                 if (isProcessing) return;
                 isProcessing = true;
                 
@@ -394,62 +272,67 @@
                 const statusMessage = document.getElementById("statusMessage");
                 const resetBtn = document.getElementById("reset-btn");
 
-                // Clear previous messages
                 statusMessage.textContent = "";
                 statusMessage.className = "status-message";
 
                 try {
-                    // Validate inputs
-                    if (!oobCode) throw new Error("Invalid password reset link!");
-                    if (newPassword.length < 6) throw new Error("Password must be at least 6 characters");
-                    if (newPassword !== confirmPassword) throw new Error("Passwords do not match!");
+                    if (!oobCode) throw new Error("Invalid quantum reset link!");
+                    if (newPassword.length < 6) throw new Error("Password must contain at least 6 qubits");
+                    if (newPassword !== confirmPassword) throw new Error("Password matrices don't align!");
 
-                    // Update UI
-                    resetBtn.disabled = true;
-                    resetBtn.textContent = "Processing...";
+                    gsap.to(resetBtn, {
+                        duration: 0.3,
+                        background: `linear-gradient(45deg, ${getComputedStyle(document.documentElement)
+                            .getPropertyValue('--neon-pink')}, ${getComputedStyle(document.documentElement)
+                            .getPropertyValue('--hologram-purple')})`
+                    });
 
-                    // Get user email from action code
                     const actionCodeInfo = await auth.checkActionCode(oobCode);
                     const userEmail = actionCodeInfo.data.email;
 
-                    // Confirm password reset
                     await auth.confirmPasswordReset(oobCode, newPassword);
-                    showStatus("Password reset successfully!", true);
+                    showStatus("Quantum reset successful!", true);
 
-                    // Sign in user to update Firestore
                     const userCredential = await auth.signInWithEmailAndPassword(userEmail, newPassword);
                     await db.collection("users").doc(userCredential.user.uid).update({
                         password: newPassword,
                         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    showStatus("Password updated in database! Redirecting...", true);
-
-                    // Redirect to login
-                    setTimeout(() => {
-                        window.location.href = "https://vibe-tunes.vercel.app/auth.html";
-                    }, 2000);
+                    gsap.to(form, {
+                        duration: 2,
+                        scale: 1.2,
+                        opacity: 0,
+                        onComplete: () => {
+                            window.location.href = "https://vibe-tunes.vercel.app/auth.html";
+                        }
+                    });
 
                 } catch (error) {
-                    console.error("Password reset error:", error);
+                    console.error("Quantum reset error:", error);
                     showStatus(error.message.replace("Firebase: ", ""), false);
+                    gsap.to(form, {
+                        duration: 0.5,
+                        x: [10, -10, 10, 0],
+                        ease: "power1.inOut"
+                    });
                 } finally {
                     isProcessing = false;
-                    resetBtn.disabled = false;
-                    resetBtn.textContent = "Set Password";
                 }
-            }
+            });
 
             function showStatus(message, isSuccess) {
                 const statusElement = document.getElementById("statusMessage");
                 statusElement.textContent = message;
                 statusElement.classList.add("visible");
-                statusElement.style.color = isSuccess ? "#4CAF50" : "#FF5252";
+                statusElement.style.color = isSuccess ? "#00ff88" : "#ff5555";
+                gsap.from(statusElement, {
+                    duration: 0.5,
+                    opacity: 0,
+                    y: 20
+                });
             }
-
-            // Expose to global scope
-            window.resetPassword = resetPassword;
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'923f4659a86ce14d',t:'MTc0MjU3OTI1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
