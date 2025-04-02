@@ -3,264 +3,439 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Password Reset | VibeTunes</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@400&display=swap" rel="stylesheet">
-    
+    <title>Password Reset | VibeTunes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
         :root {
-            --quantum-blue: #00f3ff;
-            --hologram-purple: #7d00ff;
-            --neon-pink: #ff00ff;
-            --dark-matter: #0a0a14;
-            --surface: rgba(255, 255, 255, 0.15);
-            --accent: #FF6B6B;
+            --primary: #4A6FFF;
+            --primary-hover: #3A5FEF;
+            --primary-light: rgba(74, 111, 255, 0.1);
+            --secondary: #6C757D;
+            --success: #28A745;
+            --danger: #DC3545;
+            --light: #F8F9FA;
+            --dark: #343A40;
+            --background: #FFFFFF;
+            --border: #DEE2E6;
+            --focus-ring: rgba(74, 111, 255, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            overflow: hidden;
-            background: var(--dark-matter);
-            font-family: 'Poppins', sans-serif;
-            color: white;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: var(--light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
         }
 
-        .quantum-container {
-            position: relative;
-            height: 100vh;
-            perspective: 1000px;
-        }
-
-        .hologram-form {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotateX(15deg) rotateY(25deg);
-            transform-style: preserve-3d;
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--quantum-blue);
-            border-radius: 20px;
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background-color: var(--background);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
             padding: 2.5rem;
-            width: 400px;
-            box-shadow: 0 0 50px rgba(125, 0, 255, 0.3);
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            transition: transform 0.3s ease;
         }
 
-        .hologram-form:hover {
-            transform: translate(-50%, -50%) rotateX(5deg) rotateY(-5deg);
-            box-shadow: 0 0 80px rgba(125, 0, 255, 0.5);
-        }
-
-        .input-group {
+        .logo {
+            text-align: center;
             margin-bottom: 2rem;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .input-wrapper {
             position: relative;
         }
 
         input {
             width: 100%;
-            padding: 1rem;
-            background: transparent;
-            border: 2px solid var(--quantum-blue);
-            border-radius: 8px;
-            color: var(--quantum-blue);
+            padding: 0.875rem 1rem;
             font-size: 1rem;
-            transition: all 0.3s ease;
-            text-shadow: 0 0 10px var(--quantum-blue);
+            font-family: inherit;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
 
         input:focus {
             outline: none;
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 20px var(--neon-pink);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
 
-        button {
-            position: relative;
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(45deg, var(--hologram-purple), var(--quantum-blue));
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
             border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 1.2rem;
             cursor: pointer;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px var(--quantum-blue);
+        .password-toggle:hover {
+            color: var(--dark);
         }
 
-        .particle-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: -1;
+        .password-toggle:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--focus-ring);
+            border-radius: 4px;
         }
 
-        .cyber-grid {
-            position: fixed;
+        .password-requirements {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--secondary);
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.375rem;
+        }
+
+        .requirement-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            margin-right: 0.5rem;
+            border-radius: 50%;
+            border: 1px solid var(--secondary);
+            flex-shrink: 0;
+        }
+
+        .requirement.valid .requirement-icon {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+
+        .requirement.valid .requirement-icon::after {
+            content: "✓";
+            color: white;
+            font-size: 0.75rem;
+        }
+
+        .button {
+            display: block;
             width: 100%;
-            height: 100%;
-            background: 
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 49px,
-                    rgba(0, 243, 255, 0.1) 49px,
-                    rgba(0, 243, 255, 0.1) 50px
-                ),
-                repeating-linear-gradient(
-                    90deg,
-                    transparent,
-                    transparent 49px,
-                    rgba(0, 243, 255, 0.1) 49px,
-                    rgba(0, 243, 255, 0.1) 50px
-                );
-            z-index: -2;
-            animation: gridFlow 20s linear infinite;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
         }
 
-        @keyframes gridFlow {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-50px, -50px); }
+        .button-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-primary:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .button-primary:active {
+            transform: translateY(0);
         }
 
         .status-message {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
+            margin-top: 1.25rem;
+            padding: 0.875rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
             text-align: center;
             display: none;
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .status-message.visible {
-            display: block;
+        .status-message.success {
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+            color: var(--success);
+        }
+
+        .status-message.error {
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            color: var(--danger);
+        }
+
+        .help-text {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--secondary);
+        }
+
+        .help-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        .caps-lock-warning {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--danger);
+            display: none;
+        }
+
+        /* Accessibility features */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <canvas class="particle-canvas"></canvas>
-    <div class="cyber-grid"></div>
-    
-    <div class="quantum-container">
-        <form class="hologram-form" id="resetForm">
-            <h1 style="color: var(--quantum-blue); margin-bottom: 2rem;">VibeTunes Password Reset</h1>
-
-            <div class="input-group">
-                <input type="password" id="new-password" placeholder="New Password" required>
+    <div class="container">
+        <div class="logo">
+            <!-- Replace with actual logo -->
+            <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="120" height="40" rx="8" fill="#4A6FFF"/>
+                <path d="M20.5 12L28 24H13L20.5 12Z" fill="white"/>
+                <path d="M35 12V24H33V12H35Z" fill="white"/>
+                <path d="M45 12C47.2091 12 49 13.7909 49 16V20C49 22.2091 47.2091 24 45 24H41V12H45ZM45 22C46.1046 22 47 21.1046 47 20V16C47 14.8954 46.1046 14 45 14H43V22H45Z" fill="white"/>
+                <path d="M58 12H56V24H58C60.2091 24 62 22.2091 62 20V16C62 13.7909 60.2091 12 58 12ZM58 22H58V14H58C59.1046 14 60 14.8954 60 16V20C60 21.1046 59.1046 22 58 22Z" fill="white"/>
+                <path d="M70 12H68V24H70C72.2091 24 74 22.2091 74 20V16C74 13.7909 72.2091 12 70 12ZM70 22H70V14H70C71.1046 14 72 14.8954 72 16V20C72 21.1046 71.1046 22 70 22Z" fill="white"/>
+                <path d="M84 24H76V12H84V14H78V17H83V19H78V22H84V24Z" fill="white"/>
+                <path d="M94 12H92V19C92 20.6569 90.6569 22 89 22C87.3431 22 86 20.6569 86 19V12H84V19C84 21.7614 86.2386 24 89 24C91.7614 24 94 21.7614 94 19V12Z" fill="white"/>
+                <path d="M104 24H102L97 16.3243V24H95V12H97L102 19.6757V12H104V24Z" fill="white"/>
+                <path d="M107 24V12H109V22H114V24H107Z" fill="white"/>
+            </svg>
+        </div>
+        
+        <h1>Reset Your Password</h1>
+        
+        <form id="resetForm">
+            <div class="form-group">
+                <label for="new-password">New Password</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="password" 
+                        id="new-password" 
+                        name="new-password" 
+                        aria-describedby="password-requirements"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <button type="button" class="password-toggle" aria-label="Show password">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <div class="caps-lock-warning" id="caps-lock-warning-1">Caps Lock is on</div>
+                </div>
+                
+                <div class="password-requirements" id="password-requirements">
+                    <div class="requirement" id="req-length">
+                        <span class="requirement-icon"></span>
+                        At least 6 characters
+                    </div>
+                    <div class="requirement" id="req-uppercase">
+                        <span class="requirement-icon"></span>
+                        At least 1 uppercase letter
+                    </div>
+                    <div class="requirement" id="req-number">
+                        <span class="requirement-icon"></span>
+                        At least 1 number
+                    </div>
+                </div>
             </div>
-
-            <div class="input-group">
-                <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+            
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="password" 
+                        id="confirm-password" 
+                        name="confirm-password"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <button type="button" class="password-toggle" aria-label="Show password">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <div class="caps-lock-warning" id="caps-lock-warning-2">Caps Lock is on</div>
+                </div>
             </div>
-
-            <button type="submit" id="reset-btn">Password Resrt</button>
+            
+            <button type="submit" class="button button-primary" id="reset-btn">Reset Password</button>
+            
+            <!-- Status message - hidden by default, shown via JavaScript -->
             <div class="status-message" id="statusMessage"></div>
         </form>
+        
+        <div class="help-text">
+            Need help? <a href="Vibetunesmusics@gmail.com">Contact Support</a>
+        </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
     <!-- Firebase Config -->
     <script src="config.js"></script>
 
     <script>
-        // Quantum Particle System
-        class QuantumParticles {
-            constructor() {
-                this.canvas = document.querySelector('.particle-canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.particles = [];
-                this.maxParticles = 500;
+        document.addEventListener('DOMContentLoaded', function() {
+            const newPasswordInput = document.getElementById('new-password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const passwordToggles = document.querySelectorAll('.password-toggle');
+            const resetForm = document.getElementById('resetForm');
+            const statusMessage = document.getElementById('statusMessage');
+            const resetBtn = document.getElementById('reset-btn');
+            
+            // Password visibility toggle
+            passwordToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    
+                    // Update the icon
+                    if (type === 'password') {
+                        this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+                        this.setAttribute('aria-label', 'Show password');
+                    } else {
+                        this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+                        this.setAttribute('aria-label', 'Hide password');
+                    }
+                });
+            });
+            
+            // Real-time password validation
+            newPasswordInput.addEventListener('input', validatePassword);
+            
+            function validatePassword() {
+                const password = newPasswordInput.value;
                 
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
+                // Check length requirement
+                const reqLength = document.getElementById('req-length');
+                if (password.length >= 6) {
+                    reqLength.classList.add('valid');
+                } else {
+                    reqLength.classList.remove('valid');
+                }
                 
-                this.init();
-                this.animate();
-            }
-
-            resize() {
-                this.width = this.canvas.width = window.innerWidth;
-                this.height = this.canvas.height = window.innerHeight;
-            }
-
-            init() {
-                for(let i = 0; i < this.maxParticles; i++) {
-                    this.particles.push({
-                        x: Math.random() * this.width,
-                        y: Math.random() * this.height,
-                        size: Math.random() * 2,
-                        speedX: (Math.random() - 0.5) * 0.5,
-                        speedY: (Math.random() - 0.5) * 0.5,
-                        color: `rgba(0, 243, 255, ${Math.random() * 0.5})`
-                    });
+                // Check uppercase requirement
+                const reqUppercase = document.getElementById('req-uppercase');
+                if (/[A-Z]/.test(password)) {
+                    reqUppercase.classList.add('valid');
+                } else {
+                    reqUppercase.classList.remove('valid');
+                }
+                
+                // Check number requirement
+                const reqNumber = document.getElementById('req-number');
+                if (/[0-9]/.test(password)) {
+                    reqNumber.classList.add('valid');
+                } else {
+                    reqNumber.classList.remove('valid');
                 }
             }
-
-            animate() {
-                this.ctx.clearRect(0, 0, this.width, this.height);
-                
-                this.particles.forEach(particle => {
-                    particle.x += particle.speedX;
-                    particle.y += particle.speedY;
-                    
-                    if(particle.x < 0 || particle.x > this.width) particle.speedX *= -1;
-                    if(particle.y < 0 || particle.y > this.height) particle.speedY *= -1;
-                    
-                    this.ctx.beginPath();
-                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                    this.ctx.fillStyle = particle.color;
-                    this.ctx.fill();
-                });
-                
-                requestAnimationFrame(() => this.animate());
-            }
-        }
-
-        new QuantumParticles();
-
-        // Hologram Interaction
-        const form = document.getElementById('resetForm');
-        let hoverTimeout;
-
-        form.addEventListener('mousemove', (e) => {
-            const rect = form.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
             
-            form.style.transform = `
-                translate(-50%, -50%)
-                rotateX(${(y - rect.height/2) * 0.1}deg)
-                rotateY(${(x - rect.width/2) * -0.1}deg)
-            `;
-        });
-
-        form.addEventListener('mouseleave', () => {
-            gsap.to(form, {
-                duration: 1,
-                transform: 'translate(-50%, -50%) rotateX(15deg) rotateY(25deg)',
-                ease: 'power3.out'
-            });
-        });
-
-        // Original Firebase Logic with Enhanced UI
-        document.addEventListener("DOMContentLoaded", function () {
+            // Caps Lock detection
+            const capsLockWarning1 = document.getElementById('caps-lock-warning-1');
+            const capsLockWarning2 = document.getElementById('caps-lock-warning-2');
+            
+            newPasswordInput.addEventListener('keydown', checkCapsLock);
+            confirmPasswordInput.addEventListener('keydown', checkCapsLock);
+            
+            function checkCapsLock(e) {
+                const capsLockOn = e.getModifierState('CapsLock');
+                const warningElement = this.id === 'new-password' ? capsLockWarning1 : capsLockWarning2;
+                
+                if (capsLockOn) {
+                    warningElement.style.display = 'block';
+                } else {
+                    warningElement.style.display = 'none';
+                }
+            }
+            
+            // Original Firebase Logic with Enhanced UI
             const auth = firebase.auth();
             const db = firebase.firestore();
             let isProcessing = false;
 
-            document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            resetForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (isProcessing) return;
                 isProcessing = true;
@@ -269,29 +444,21 @@
                 const oobCode = urlParams.get("oobCode");
                 const newPassword = document.getElementById("new-password").value;
                 const confirmPassword = document.getElementById("confirm-password").value;
-                const statusMessage = document.getElementById("statusMessage");
-                const resetBtn = document.getElementById("reset-btn");
-
-                statusMessage.textContent = "";
-                statusMessage.className = "status-message";
-
+                
+                // Disable the button to prevent multiple submissions
+                resetBtn.disabled = true;
+                resetBtn.textContent = 'Processing...';
+                
                 try {
-                    if (!oobCode) throw new Error("Invalid quantum reset link!");
+                    if (!oobCode) throw new Error("Invalid password reset link!");
                     if (newPassword.length < 6) throw new Error("Password must contain at least 6 qubits");
                     if (newPassword !== confirmPassword) throw new Error("Password matrices don't align!");
-
-                    gsap.to(resetBtn, {
-                        duration: 0.3,
-                        background: `linear-gradient(45deg, ${getComputedStyle(document.documentElement)
-                            .getPropertyValue('--neon-pink')}, ${getComputedStyle(document.documentElement)
-                            .getPropertyValue('--hologram-purple')})`
-                    });
 
                     const actionCodeInfo = await auth.checkActionCode(oobCode);
                     const userEmail = actionCodeInfo.data.email;
 
                     await auth.confirmPasswordReset(oobCode, newPassword);
-                    showStatus("Quantum reset successful!", true);
+                    showStatus("Password reset successful!", "success");
 
                     const userCredential = await auth.signInWithEmailAndPassword(userEmail, newPassword);
                     await db.collection("users").doc(userCredential.user.uid).update({
@@ -299,39 +466,32 @@
                         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    gsap.to(form, {
-                        duration: 2,
-                        scale: 1.2,
-                        opacity: 0,
-                        onComplete: () => {
-                            window.location.href = "https://vibe-tunes.vercel.app/auth.html";
-                        }
-                    });
-
+                    // Simulate redirect after successful reset
+                    setTimeout(function() {
+                        window.location.href = "https://vibe-tunes.vercel.app/auth.html";
+                    }, 1000);
+                    
                 } catch (error) {
-                    console.error("Quantum reset error:", error);
-                    showStatus(error.message.replace("Firebase: ", ""), false);
-                    gsap.to(form, {
-                        duration: 0.5,
-                        x: [10, -10, 10, 0],
-                        ease: "power1.inOut"
-                    });
+                    console.error("Password reset error:", error);
+                    showStatus(error.message.replace("Firebase: ", ""), "error");
+                    resetBtn.disabled = false;
+                    resetBtn.textContent = 'Reset Password';
                 } finally {
                     isProcessing = false;
                 }
             });
-
-            function showStatus(message, isSuccess) {
-                const statusElement = document.getElementById("statusMessage");
-                statusElement.textContent = message;
-                statusElement.classList.add("visible");
-                statusElement.style.color = isSuccess ? "#00ff88" : "#ff5555";
-                gsap.from(statusElement, {
-                    duration: 0.5,
-                    opacity: 0,
-                    y: 20
-                });
+            
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status-message ' + type;
+                statusMessage.style.display = 'block';
+                
+                // Scroll to the status message if it's not in view
+                statusMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
+            
+            // Initialize password validation on page load
+            validatePassword();
         });
     </script>
 </body>
